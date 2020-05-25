@@ -32,14 +32,14 @@ public class ReturnOrderRestController {
 
     @PatchMapping("/return-orders/{id}/accept")
     @ResponseStatus(HttpStatus.CREATED)
-    public ReturnOrderDTO acceptReturnOrder(@PathParam("id") Long id)
+    public ReturnOrderDTO acceptReturnOrder(@PathVariable("id") Long id)
         throws ResourceNotFoundException, RelationViolationException {
         return returnOrderService.acceptReturnOrder(id);
     }
 
     @PatchMapping("/return-orders/{id}/reject")
     @ResponseStatus(HttpStatus.OK)
-    public ReturnOrderDTO rejectReturnOrder(@PathParam("id") Long id) {
+    public ReturnOrderDTO rejectReturnOrder(@PathVariable("id") Long id) {
         return null;
     }
 

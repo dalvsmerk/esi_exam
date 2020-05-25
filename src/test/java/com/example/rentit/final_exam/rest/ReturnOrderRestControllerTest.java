@@ -1,6 +1,7 @@
 package com.example.rentit.final_exam.rest;
 
 import com.example.rentit.RentitApplication;
+import com.example.rentit.common.application.dto.SimpleErrorDTO;
 import com.example.rentit.final_exam.application.dto.ReturnOrderDTO;
 import com.example.rentit.final_exam.application.dto.ReturnOrderRequestDTO;
 import com.example.rentit.final_exam.domain.model.ReturnOrder;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -59,7 +61,7 @@ public class ReturnOrderRestControllerTest {
 
     @Test
     @Sql("classpath:/final_exam/rest/exam_dataset.sql")
-    public void testCreateReturnOrderSuccessfully() throws Exception {
+    public void testCreateReturnOrderSuccess() throws Exception {
         List<Long> items = new ArrayList<>();
         items.add(1L);
         items.add(2L);
@@ -84,8 +86,80 @@ public class ReturnOrderRestControllerTest {
         ReturnOrder order = returnOrderRepository.findById(orderDTO.get_id()).orElse(null);
 
         assertThat(order).isNotNull();
+        assertThat(order.getId()).isNotNull();
         assertThat(order.getStatus()).isEqualTo(ReturnOrderStatus.PENDING);
         assertThat(order.getReturnDate()).isEqualTo(LocalDate.of(2020, 07, 03));
 //        assertThat(order.getOrders().size()).isEqualTo(3); // Hibernation lazy initialization error, no time to solve
+    }
+
+    @Test
+    @Sql("classpath:/final_exam/rest/exam_dataset.sql")
+    public void testAcceptReturnOrderSuccess() throws Exception {
+        List<Long> items = new ArrayList<>();
+        items.add(1L);
+        items.add(2L);
+        items.add(3L);
+
+        ReturnOrderRequestDTO requestDTO = ReturnOrderRequestDTO.of(
+                LocalDate.of(2020, 07, 03), items);
+
+        MvcResult result = mockMvc.perform(post("/api/returns/return-orders")
+                .content(mapper.writeValueAsString(requestDTO)).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        ReturnOrderDTO orderDTO = mapper.readValue(
+                result.getResponse().getContentAsString(),
+                new TypeReference<ReturnOrderDTO>() {});
+
+        result = mockMvc.perform(patch("/api/returns/return-orders/" + orderDTO.get_id() + "/accept"))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        orderDTO = mapper.readValue(
+                result.getResponse().getContentAsString(),
+                new TypeReference<ReturnOrderDTO>() {});
+
+        assertThat(orderDTO.getStatus()).isEqualTo(ReturnOrderStatus.ACCEPTED);
+
+        orderDTO.getOrders().forEach(order -> {
+            assertThat(order.getRentalPeriod().getEndDate()).isEqualTo(LocalDate.of(2020, 07, 03));
+        });
+    }
+
+    @Test
+    @Sql("classpath:/final_exam/rest/exam_dataset.sql")
+    public void testAcceptReturnOrderNonPendingError() throws Exception {
+        List<Long> items = new ArrayList<>();
+        items.add(1L);
+        items.add(2L);
+        items.add(3L);
+
+        ReturnOrderRequestDTO requestDTO = ReturnOrderRequestDTO.of(
+                LocalDate.of(2020, 07, 03), items);
+
+        MvcResult result = mockMvc.perform(post("/api/returns/return-orders")
+                .content(mapper.writeValueAsString(requestDTO)).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        ReturnOrderDTO orderDTO = mapper.readValue(
+                result.getResponse().getContentAsString(),
+                new TypeReference<ReturnOrderDTO>() {});
+
+        result = mockMvc.perform(patch("/api/returns/return-orders/" + orderDTO.get_id() + "/accept"))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        // Accept already accepted return order
+        result = mockMvc.perform(patch("/api/returns/return-orders/" + orderDTO.get_id() + "/accept"))
+                .andExpect(status().isMethodNotAllowed())
+                .andReturn();
+
+        SimpleErrorDTO errorDTO = mapper.readValue(
+                result.getResponse().getContentAsString(),
+                new TypeReference<SimpleErrorDTO>() {});
+
+        assertThat(errorDTO.getMessage()).isEqualTo("Non-pending Return Order cannot be accepted");
     }
 }
