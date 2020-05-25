@@ -37,10 +37,12 @@ public class ReturnOrder {
 
         for (PurchaseOrder order : orders) {
             BusinessPeriod period = order.getRentalPeriod();
-            Long daysBetween = Duration.between(period.getEndDate(), period.getStartDate()).toDays();
+            Long daysBetween = Duration
+                    .between(period.getStartDate().atStartOfDay(), period.getEndDate().atStartOfDay())
+                    .toDays();
             BigDecimal orderFee = BigDecimal.valueOf(daysBetween).multiply(order.getPlant().getPlantInfo().getPrice());
 
-            fee.add(orderFee);
+            fee = fee.add(orderFee);
         }
 
         // 5% fee of total purchase orders price

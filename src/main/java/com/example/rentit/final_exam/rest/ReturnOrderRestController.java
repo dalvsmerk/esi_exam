@@ -23,21 +23,21 @@ public class ReturnOrderRestController {
     @Autowired
     ReturnOrderService returnOrderService;
 
-    @PostMapping("/return-order")
+    @PostMapping("/return-orders")
     @ResponseStatus(HttpStatus.CREATED)
     public ReturnOrderDTO createReturnOrder(@RequestBody ReturnOrderRequestDTO request)
         throws ResourceNotFoundException, ValidationException {
         return returnOrderService.createReturnOrder(request);
     }
 
-    @PatchMapping("/return-order/{id}/accept")
+    @PatchMapping("/return-orders/{id}/accept")
     @ResponseStatus(HttpStatus.CREATED)
     public ReturnOrderDTO acceptReturnOrder(@PathParam("id") Long id)
         throws ResourceNotFoundException, RelationViolationException {
         return returnOrderService.acceptReturnOrder(id);
     }
 
-    @PatchMapping("/return-order/{id}/reject")
+    @PatchMapping("/return-orders/{id}/reject")
     @ResponseStatus(HttpStatus.OK)
     public ReturnOrderDTO rejectReturnOrder(@PathParam("id") Long id) {
         return null;
