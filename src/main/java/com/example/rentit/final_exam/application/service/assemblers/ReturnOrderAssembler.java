@@ -44,10 +44,10 @@ public class ReturnOrderAssembler extends ResourceAssemblerSupport<ReturnOrder, 
                             linkTo(methodOn(ReturnOrderRestController.class).acceptReturnOrder(dto.get_id())).toString(),
                             "accept",
                             PATCH));
-                    dto.add(new ExtendedLink(
-                            linkTo(methodOn(ReturnOrderRestController.class).rejectReturnOrder(dto.get_id())).toString(),
-                            "reject",
-                            PATCH));
+//                    dto.add(new ExtendedLink(
+//                            linkTo(methodOn(ReturnOrderRestController.class).rejectReturnOrder(dto.get_id())).toString(),
+//                            "reject",
+//                            PATCH));
             }
         } catch (Exception e) {
             System.err.println("Error adding a hyperlink");
