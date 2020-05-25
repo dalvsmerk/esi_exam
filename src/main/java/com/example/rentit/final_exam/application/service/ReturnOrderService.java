@@ -29,12 +29,12 @@ public class ReturnOrderService {
         List<Long> items = requestDTO.getPlantItems();
 
         Pair<List<Long>, List<PurchaseOrder>> verificationResult = verifyPOExistence(items);
-//        List<Long> nonExistingItems = verificationResult.getFirst();
+        List<Long> nonExistingItems = verificationResult.getFirst();
         List<PurchaseOrder> orders = verificationResult.getSecond();
 
-//        if (!nonExistingItems.isEmpty()) {
-//            throw new ResourceNotFoundException("Purchase Order", nonExistingItems);
-//        }
+        if (!nonExistingItems.isEmpty()) {
+            throw new ResourceNotFoundException("Purchase Order", nonExistingItems);
+        }
 
         BigDecimal fee = ReturnOrder.computeFee(orders);
 
