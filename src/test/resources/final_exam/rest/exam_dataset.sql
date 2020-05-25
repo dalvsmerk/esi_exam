@@ -12,14 +12,17 @@ values
     (1, 1, 'A01', 'SERVICEABLE', 'AVAILABLE'),
     (2, 2, 'A02', 'SERVICEABLE', 'AVAILABLE'),
     (3, 3, 'A03', 'SERVICEABLE', 'AVAILABLE'),
-    (4, 4, 'A04', 'SERVICEABLE', 'AVAILABLE');
+    (4, 4, 'A04', 'SERVICEABLE', 'AVAILABLE'),
+    (5, 4, 'A04', 'SERVICEABLE', 'AVAILABLE');
 
 insert into purchase_order
     (id, plant_id, issue_date, status, start_date, end_date, plant_replaced, customer_order_id)
 values
-    (1, 1, '2020-05-01', 'ACCEPTED', '2020-07-01', '2020-07-08', false, 1),
-    (2, 2, '2020-05-10', 'ACCEPTED', '2020-07-01', '2020-07-08', false, 2),
-    (3, 3, '2020-06-01', 'ACCEPTED', '2020-07-01', '2020-07-08', false, 3);
+    (1, 1, '2020-05-01', 'ACCEPTED', '2020-05-01', '2020-07-08', false, 1),
+    (2, 2, '2020-05-10', 'ACCEPTED', '2020-05-01', '2020-07-08', false, 2),
+    (3, 3, '2020-06-01', 'ACCEPTED', '2020-05-01', '2020-07-08', false, 3),
+    (4, 4, '2020-06-01', 'ACCEPTED', '2020-01-01', '2020-07-08', false, 4),
+    (5, 5, '2020-06-01', 'ACCEPTED', '2020-07-01', '2020-07-08', false, 5);
 
 -- insert into plant_reservation
 --     (id, start_date, end_date, rental_id, plant_id)

@@ -30,7 +30,7 @@ public class ReturnOrderValidator implements Validator {
             LocalDate orderStartDate = order.getRentalPeriod().getStartDate();
             LocalDate orderEndDate = order.getRentalPeriod().getEndDate();
 
-            Boolean plantsWereDispatched = LocalDate.now().isBefore(orderStartDate);
+            Boolean plantsWereDispatched = LocalDate.now().isAfter(orderStartDate);
             Boolean returnDateWithinPeriod =
                     returnDate.isAfter(orderStartDate) && returnDate.isBefore(orderEndDate);
 

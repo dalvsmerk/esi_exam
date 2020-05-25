@@ -2,6 +2,7 @@ package com.example.rentit.final_exam.rest;
 
 import com.example.rentit.RentitApplication;
 import com.example.rentit.common.application.dto.SimpleErrorDTO;
+import com.example.rentit.common.application.dto.ValidationErrorDTO;
 import com.example.rentit.final_exam.application.dto.ReturnOrderDTO;
 import com.example.rentit.final_exam.application.dto.ReturnOrderRequestDTO;
 import com.example.rentit.final_exam.domain.model.ReturnOrder;
@@ -68,7 +69,7 @@ public class ReturnOrderRestControllerTest {
         items.add(3L);
 
         ReturnOrderRequestDTO requestDTO = ReturnOrderRequestDTO.of(
-                LocalDate.of(2020, 07, 03), items);
+                LocalDate.of(2020, 05, 03), items);
 
         MvcResult result = mockMvc.perform(post("/api/returns/return-orders")
                 .content(mapper.writeValueAsString(requestDTO)).contentType(MediaType.APPLICATION_JSON))
@@ -79,7 +80,7 @@ public class ReturnOrderRestControllerTest {
                 result.getResponse().getContentAsString(),
                 new TypeReference<ReturnOrderDTO>() {});
 
-        BigDecimal fee = BigDecimal.valueOf((200*7 + 300*7 + 500*7) * 0.05);
+        BigDecimal fee = BigDecimal.valueOf(3400);
         assertThat(orderDTO.getFee().toBigInteger()).isEqualTo(fee.toBigInteger());
         assertThat(orderDTO.getOrders().size()).isEqualTo(3);
 
@@ -88,8 +89,31 @@ public class ReturnOrderRestControllerTest {
         assertThat(order).isNotNull();
         assertThat(order.getId()).isNotNull();
         assertThat(order.getStatus()).isEqualTo(ReturnOrderStatus.PENDING);
-        assertThat(order.getReturnDate()).isEqualTo(LocalDate.of(2020, 07, 03));
+        assertThat(order.getReturnDate()).isEqualTo(LocalDate.of(2020, 05, 03));
 //        assertThat(order.getOrders().size()).isEqualTo(3); // Hibernation lazy initialization error, no time to solve
+    }
+
+    @Test
+    @Sql("classpath:/final_exam/rest/exam_dataset.sql")
+    public void testCreateReturnOrderPlantNotDispatched() throws Exception {
+        List<Long> items = new ArrayList<>();
+        items.add(4L);
+        items.add(5L);
+
+        ReturnOrderRequestDTO requestDTO = ReturnOrderRequestDTO.of(
+                LocalDate.of(2020, 07, 03), items);
+
+        MvcResult result = mockMvc.perform(post("/api/returns/return-orders")
+                .content(mapper.writeValueAsString(requestDTO)).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict())
+                .andReturn();
+
+        ValidationErrorDTO orderDTO = mapper.readValue(
+                result.getResponse().getContentAsString(),
+                new TypeReference<ValidationErrorDTO>() {});
+
+        System.out.println(orderDTO.getViolations());
+        assertThat(orderDTO.getViolations().get("orders[1]")).isEqualTo("Plant hasn't been dispatched yet");
     }
 
     @Test
