@@ -35,11 +35,11 @@ public class ReturnOrderRestController {
         return null;
     }
 
-//    @PatchMapping("/return-order/{id}/reject")
-//    @ResponseStatus(HttpStatus.OK)
-//    public ReturnOrderDTO rejectReturnOrder(@PathParam("id") Long id) {
-//        return null;
-//    }
+    @PatchMapping("/return-order/{id}/reject")
+    @ResponseStatus(HttpStatus.OK)
+    public ReturnOrderDTO rejectReturnOrder(@PathParam("id") Long id) {
+        return null;
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<SimpleErrorDTO> handleResourceNotFoundException(ResourceNotFoundException ex) {
