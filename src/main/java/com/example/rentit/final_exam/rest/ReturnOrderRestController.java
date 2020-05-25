@@ -2,6 +2,7 @@ package com.example.rentit.final_exam.rest;
 
 import com.example.rentit.common.application.dto.SimpleErrorDTO;
 import com.example.rentit.common.application.dto.ValidationErrorDTO;
+import com.example.rentit.common.application.exception.RelationViolationException;
 import com.example.rentit.common.application.exception.ResourceNotFoundException;
 import com.example.rentit.common.application.exception.ValidationException;
 import com.example.rentit.final_exam.application.dto.ReturnOrderDTO;
@@ -30,9 +31,10 @@ public class ReturnOrderRestController {
     }
 
     @PatchMapping("/return-order/{id}/accept")
-    @ResponseStatus(HttpStatus.OK)
-    public ReturnOrderDTO acceptReturnOrder(@PathParam("id") Long id) {
-        return null;
+    @ResponseStatus(HttpStatus.CREATED)
+    public ReturnOrderDTO acceptReturnOrder(@PathParam("id") Long id)
+        throws ResourceNotFoundException, RelationViolationException {
+        return returnOrderService.acceptReturnOrder(id);
     }
 
     @PatchMapping("/return-order/{id}/reject")
@@ -46,6 +48,13 @@ public class ReturnOrderRestController {
         SimpleErrorDTO notFoundError = SimpleErrorDTO.of(ex.getMessage());
 
         return new ResponseEntity<>(notFoundError, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(RelationViolationException.class)
+    public ResponseEntity<SimpleErrorDTO> handleRelationViolationException(RelationViolationException ex) {
+        SimpleErrorDTO notFoundError = SimpleErrorDTO.of(ex.getMessage());
+
+        return new ResponseEntity<>(notFoundError, HttpStatus.METHOD_NOT_ALLOWED);
     }
 
     @ExceptionHandler(ValidationException.class)

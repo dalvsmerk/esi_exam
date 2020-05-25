@@ -1,7 +1,6 @@
 package com.example.rentit.sales.domain.model;
 
 import com.example.rentit.common.domain.model.BusinessPeriod;
-import com.example.rentit.inventory.domain.model.PlantInventoryEntry;
 import com.example.rentit.inventory.domain.model.PlantInventoryItem;
 import com.example.rentit.inventory.domain.model.PlantReservation;
 import lombok.AccessLevel;
@@ -9,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;

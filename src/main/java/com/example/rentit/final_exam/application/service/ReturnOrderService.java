@@ -1,7 +1,9 @@
 package com.example.rentit.final_exam.application.service;
 
+import com.example.rentit.common.application.exception.RelationViolationException;
 import com.example.rentit.common.application.exception.ResourceNotFoundException;
 import com.example.rentit.common.application.exception.ValidationException;
+import com.example.rentit.common.domain.model.BusinessPeriod;
 import com.example.rentit.final_exam.application.dto.ReturnOrderDTO;
 import com.example.rentit.final_exam.application.dto.ReturnOrderRequestDTO;
 import com.example.rentit.final_exam.application.service.assemblers.ReturnOrderAssembler;
@@ -9,8 +11,6 @@ import com.example.rentit.final_exam.application.service.validators.ReturnOrderV
 import com.example.rentit.final_exam.domain.model.ReturnOrder;
 import com.example.rentit.final_exam.domain.model.ReturnOrderStatus;
 import com.example.rentit.final_exam.domain.repository.ReturnOrderRepository;
-import com.example.rentit.inventory.application.exception.PlantInventoryEntryValidationException;
-import com.example.rentit.inventory.application.service.PlantInventoryEntryValidator;
 import com.example.rentit.sales.domain.model.PurchaseOrder;
 import com.example.rentit.sales.domain.repository.PurchaseOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +20,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.DataBinder;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,6 +62,35 @@ public class ReturnOrderService {
         if (bindingResult.hasFieldErrors()) {
             throw new ValidationException("Return Order", bindingResult);
         }
+
+        order = returnOrderRepository.saveAndFlush(order);
+
+        return returnOrderAssembler.toResource(order);
+    }
+
+    public ReturnOrderDTO acceptReturnOrder(Long id)
+            throws ResourceNotFoundException, RelationViolationException {
+        ReturnOrder order = returnOrderRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Return Order", id));
+
+        if (order.getStatus() != ReturnOrderStatus.PENDING) {
+            throw new RelationViolationException("Non-pending Return Order cannot be accepted");
+        }
+
+        List<PurchaseOrder> updatedPos = new ArrayList<>();
+
+        for (PurchaseOrder po : order.getOrders()) {
+            LocalDate poStartDate = po.getRentalPeriod().getStartDate();
+            BusinessPeriod shortenedPeriod = BusinessPeriod.of(poStartDate, order.getReturnDate());
+
+            po.setRentalPeriod(shortenedPeriod);
+
+            po = poRepository.saveAndFlush(po);
+            updatedPos.add(po);
+        }
+
+        order.setOrders(updatedPos);
+        order.setStatus(ReturnOrderStatus.ACCEPTED);
 
         order = returnOrderRepository.saveAndFlush(order);
 
