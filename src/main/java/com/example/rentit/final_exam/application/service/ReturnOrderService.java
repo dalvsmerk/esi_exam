@@ -1,16 +1,23 @@
 package com.example.rentit.final_exam.application.service;
 
 import com.example.rentit.common.application.exception.ResourceNotFoundException;
+import com.example.rentit.common.application.exception.ValidationException;
 import com.example.rentit.final_exam.application.dto.ReturnOrderDTO;
 import com.example.rentit.final_exam.application.dto.ReturnOrderRequestDTO;
 import com.example.rentit.final_exam.application.service.assemblers.ReturnOrderAssembler;
+import com.example.rentit.final_exam.application.service.validators.ReturnOrderValidator;
 import com.example.rentit.final_exam.domain.model.ReturnOrder;
 import com.example.rentit.final_exam.domain.model.ReturnOrderStatus;
+import com.example.rentit.final_exam.domain.repository.ReturnOrderRepository;
+import com.example.rentit.inventory.application.exception.PlantInventoryEntryValidationException;
+import com.example.rentit.inventory.application.service.PlantInventoryEntryValidator;
 import com.example.rentit.sales.domain.model.PurchaseOrder;
 import com.example.rentit.sales.domain.repository.PurchaseOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.DataBinder;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -24,8 +31,11 @@ public class ReturnOrderService {
     @Autowired
     PurchaseOrderRepository poRepository;
 
+    @Autowired
+    ReturnOrderRepository returnOrderRepository;
+
     public ReturnOrderDTO createReturnOrder(ReturnOrderRequestDTO requestDTO)
-            throws ResourceNotFoundException {
+            throws ResourceNotFoundException, ValidationException {
         List<Long> items = requestDTO.getPlantItems();
 
         Pair<List<Long>, List<PurchaseOrder>> verificationResult = verifyPOExistence(items);
@@ -40,6 +50,18 @@ public class ReturnOrderService {
 
         ReturnOrder order = ReturnOrder.of(
                 null, requestDTO.getReturnDate(), orders, fee, ReturnOrderStatus.PENDING);
+
+        DataBinder binder = new DataBinder(order);
+        binder.addValidators(new ReturnOrderValidator());
+        binder.validate();
+
+        BindingResult bindingResult = binder.getBindingResult();
+
+        if (bindingResult.hasFieldErrors()) {
+            throw new ValidationException("Return Order", bindingResult);
+        }
+
+        order = returnOrderRepository.saveAndFlush(order);
 
         return returnOrderAssembler.toResource(order);
     }
