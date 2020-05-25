@@ -26,5 +26,7 @@ public class ReturnOrder {
     List<PurchaseOrder> orders;
 
     BigDecimal fee;
+
+    @Enumerated(EnumType.STRING)
     ReturnOrderStatus status;
 }
